@@ -1,18 +1,10 @@
 import os
-from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, request, render_template, send_from_directory, jsonify
-
+from pymongo import MongoClient
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///messages.db' 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-
-
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text)
-    chat_room = db.Column(db.String(50))
+client = MongoClient('localhost', 27017)
+db = client.flask_db
+chats = db.chats
 
 allMessages = {}
 directory = os.getcwd() + "/build"
@@ -20,30 +12,33 @@ directory = os.getcwd() + "/build"
 @app.get('/chats')
 def get_chats():
     print("request received")
-    return list(allMessages.keys())
+    chat_list = list()
+    for chat_id in chats.find({}):
+        chat_list.append(chat_id['_id'])
+    return chat_list
 
 @app.get('/messages/<chat_number>')
 def get_messages(chat_number):
-    return allMessages.get(chat_number, [])
+    chat = chats.find_one({'_id': chat_number})
+    print("testing")
+    if chat == None:
+        return []
+    return chats.find_one({'_id': chat_number})['chat']
 
 @app.post('/messages/<chat_number>')
 def store_message(chat_number):
     print(f"""request post received: {request.data}""")
-    chat_list = allMessages.get(chat_number, [])
-    chat_list.append(request.json)
-    allMessages[chat_number] = chat_list
-    
-    content = request.json.get('content')
-    new_message = Message(content=content, chat_room=chat_number)
-    db.session.add(new_message)
-    db.session.commit()
-    return 'message success'
-
+    chat = chats.find_one({'_id': chat_number})
+    if chat == None:
+        chat = {'_id': chat_number, 'chat': [request.json]}
+        chats.insert_one(chat)
+    else:
+        chats.update_one({'_id': chat_number},{'$push': {'chat': request.json}})
+    return 'message added'
 
 @app.delete('/chats')
 def delete_chats():
-    global allMessages
-    allMessages = {}
+    chats.delete_many({})
     return 'All chat rooms deleted successfully'
 
 if __name__ == '__main__':
