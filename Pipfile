@@ -8,8 +8,8 @@ flask = "*"
 flask-sqlalchemy = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
-pymongo = "*"
 gunicorn = "*"
+pymongo = {extras = ["srv"], version = "*"}
 
 [dev-packages]
 
