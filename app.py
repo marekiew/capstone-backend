@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, render_template, send_from_directory, jsonify
 from pymongo import MongoClient
 app = Flask(__name__)
-client = MongoClient('localhost', 27017)
+client = MongoClient("mongodb+srv://markpetrov010:ZDX7k8hrVxvzNXmT@cluster0.kqmvxqq.mongodb.net/?retryWrites=true&w=majority")
 db = client.flask_db
 chats = db.chats
 
