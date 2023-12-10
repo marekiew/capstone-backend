@@ -9,7 +9,7 @@ chats = db.chats
 allMessages = {}
 directory = os.getcwd() + "/build"
 
-@app.get('/chats')
+@app.get('/api/chats')
 def get_chats():
     print("request received")
     chat_list = list()
@@ -17,7 +17,7 @@ def get_chats():
         chat_list.append(chat_id['_id'])
     return chat_list
 
-@app.get('/messages/<chat_number>')
+@app.get('/api/messages/<chat_number>')
 def get_messages(chat_number):
     chat = chats.find_one({'_id': chat_number})
     print("testing")
@@ -25,7 +25,7 @@ def get_messages(chat_number):
         return []
     return chats.find_one({'_id': chat_number})['chat']
 
-@app.post('/messages/<chat_number>')
+@app.post('/api/messages/<chat_number>')
 def store_message(chat_number):
     print(f"""request post received: {request.data}""")
     chat = chats.find_one({'_id': chat_number})
@@ -36,7 +36,7 @@ def store_message(chat_number):
         chats.update_one({'_id': chat_number},{'$push': {'chat': request.json}})
     return 'message added'
 
-@app.delete('/chats')
+@app.delete('/api/chats')
 def delete_chats():
     chats.delete_many({})
     return 'All chat rooms deleted successfully'
